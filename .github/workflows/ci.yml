@@ -1,0 +1,63 @@
+name: CI / Production Release Gate
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck, Test, Security Audit & Build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./extension
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (v20 LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: extension/package-lock.json
+
+      - name: Install dependencies (clean install)
+        run: npm ci
+
+      - name: Typecheck (tsc --noEmit)
+        run: npm run typecheck
+
+      - name: Build Production Extension (Vite)
+        run: npm run build
+
+      - name: Production Security & Leak Audit
+        run: npm run audit
+
+      - name: Verify Bundle Integrity
+        run: |
+          test -f dist/manifest.json || { echo "Missing manifest.json"; exit 1; }
+          test -f dist/background.js || { echo "Missing background.js"; exit 1; }
+          test -f dist/content.js || { echo "Missing content.js"; exit 1; }
+          test -f dist/sidepanel.html || { echo "Missing sidepanel.html"; exit 1; }
+          test -f dist/popup.html || { echo "Missing popup.html"; exit 1; }
+          test -f dist/icons/icon128.png || { echo "Missing icon128.png"; exit 1; }
+          echo "All extension bundle files verified successfully."
+
+      - name: Package Extension (ZIP)
+        run: node scripts/package-extension.mjs
+
+      - name: Upload Extension Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: redditdig-extension-production
+          path: extension/redditdig-extension.zip
+          retention-days: 14
