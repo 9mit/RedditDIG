@@ -83,15 +83,17 @@ Filters through noise to identify:
 1. Clone the repository:
    ```bash
    git clone https://github.com/9mit/RedditDIG.git
-   cd RedditDIG/extension
+   cd RedditDIG
    ```
 2. Install dependencies:
    ```bash
-   npm install
+   npm --prefix extension install
+   # or: cd extension && npm install
    ```
 3. Build the extension bundle:
    ```bash
    npm run build
+   # or: cd extension && npm run build
    ```
 
 ### Loading the Extension in Chrome
@@ -108,7 +110,7 @@ Filters through noise to identify:
 
 ## 🧪 Development Workflow
 
-All development commands are executed inside the `extension/` directory:
+All commands can be executed from the repository root or inside the `extension/` directory:
 
 | Command | Action |
 | :--- | :--- |

@@ -1,0 +1,19 @@
+{
+  "name": "redditdig",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RedditDIG - Reddit Thread Intelligence & Search Chrome Extension (MV3)",
+  "workspaces": [
+    "extension"
+  ],
+  "scripts": {
+    "build": "npm --prefix extension run build",
+    "verify": "npm --prefix extension run verify",
+    "verify:bundle": "npm --prefix extension run verify:bundle",
+    "typecheck": "npm --prefix extension run typecheck",
+    "audit": "npm --prefix extension run audit",
+    "package": "npm --prefix extension run package",
+    "test": "npm --prefix extension test",
+    "dev": "npm --prefix extension run dev"
+  }
+}

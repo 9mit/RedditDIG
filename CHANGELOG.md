@@ -20,7 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - General thread debate clustering fallback surfacing opposing viewpoints even when predefined hardware topics are absent.
 - **Chrome Unpacked Distribution & Manifest Verification:**
   - Enhanced Vite asset plugin with Rollup `generateBundle` hook to emit `manifest.json` and static icons as first-class compilation assets alongside `closeBundle` filesystem sync.
-  - Implemented standalone cross-platform `verify-bundle.mjs` script validating `dist/manifest.json`, background service worker, content script, HTML entrypoints, and internal assets.
+  - Implemented standalone cross-platform `verify-bundle.mjs` script validating `dist/manifest.json`, background service worker, content script JS/CSS, web accessible resources, HTML entrypoints, and internal assets.
+  - Added repository root `package.json` with npm workspaces and delegated scripts (`build`, `verify`, `test`, `package`) enabling builds directly from project root or `extension/` directory.
   - Reordered `verify` pipeline (`typecheck` -> `build` -> `audit` -> `verify-bundle`) ensuring freshly built bundles are audited and verified before packaging.
   - Documented explicit build requirement before loading unpacked extension in Chrome.
 

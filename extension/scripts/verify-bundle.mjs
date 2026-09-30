@@ -34,6 +34,14 @@ if (!fs.existsSync(manifestPath)) {
       errors.push(`Expected manifest_version 3, got: ${manifest.manifest_version}`);
     }
 
+    if (!manifest.name || typeof manifest.name !== 'string') {
+      errors.push('Manifest missing required "name" string');
+    }
+
+    if (!manifest.version || typeof manifest.version !== 'string') {
+      errors.push('Manifest missing required "version" string');
+    }
+
     // Verify background service worker
     if (manifest.background?.service_worker) {
       const swPath = path.join(distDir, manifest.background.service_worker);
@@ -51,7 +59,36 @@ if (!fs.existsSync(manifestPath)) {
           for (const jsFile of cs.js) {
             const jsPath = path.join(distDir, jsFile);
             if (!fs.existsSync(jsPath) || fs.statSync(jsPath).size === 0) {
-              errors.push(`Content script missing or empty: ${jsFile}`);
+              errors.push(`Content script JS missing or empty: ${jsFile}`);
+            }
+          }
+        }
+        if (Array.isArray(cs.css)) {
+          for (const cssFile of cs.css) {
+            const cssPath = path.join(distDir, cssFile);
+            if (!fs.existsSync(cssPath) || fs.statSync(cssPath).size === 0) {
+              errors.push(`Content script CSS missing or empty: ${cssFile}`);
+            }
+          }
+        }
+      }
+    }
+
+    // Verify web accessible resources
+    if (Array.isArray(manifest.web_accessible_resources)) {
+      for (const war of manifest.web_accessible_resources) {
+        if (Array.isArray(war.resources)) {
+          for (const res of war.resources) {
+            if (res.endsWith('/*')) {
+              const resDir = path.join(distDir, res.slice(0, -2));
+              if (!fs.existsSync(resDir) || !fs.statSync(resDir).isDirectory()) {
+                errors.push(`Web accessible resource directory missing: ${res}`);
+              }
+            } else {
+              const resPath = path.join(distDir, res);
+              if (!fs.existsSync(resPath) || fs.statSync(resPath).size === 0) {
+                errors.push(`Web accessible resource missing or empty: ${res}`);
+              }
             }
           }
         }
