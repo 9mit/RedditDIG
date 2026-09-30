@@ -1,13 +1,13 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import fs from 'fs';
 
 // Plugin to reliably emit manifest.json and icons to dist
-function copyExtensionAssets() {
+function copyExtensionAssets(): Plugin {
   return {
     name: 'copy-extension-assets',
-    generateBundle() {
+    generateBundle(this: any) {
       // Emit manifest.json as a first-class Rollup asset
       const manifestPath = resolve(__dirname, 'manifest.json');
       if (fs.existsSync(manifestPath)) {
