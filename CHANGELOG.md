@@ -18,7 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Dynamic entity clash detection across general threads, gaming, programming, camera, keyboard, and audio domains.
   - Comprehensive natural rebuttal pattern matching (standalone pushbacks, dead-wrong rebuttals, contrastive rebuttal markers).
   - General thread debate clustering fallback surfacing opposing viewpoints even when predefined hardware topics are absent.
-  - Expanded test coverage to 120 automated test cases with 100% pass rate.
+- **Chrome Unpacked Distribution & Manifest Verification:**
+  - Enhanced Vite asset plugin with Rollup `generateBundle` hook to emit `manifest.json` and static icons as first-class compilation assets alongside `closeBundle` filesystem sync.
+  - Implemented standalone cross-platform `verify-bundle.mjs` script validating `dist/manifest.json`, background service worker, content script, HTML entrypoints, and internal assets.
+  - Reordered `verify` pipeline (`typecheck` -> `build` -> `audit` -> `verify-bundle`) ensuring freshly built bundles are audited and verified before packaging.
+  - Documented explicit build requirement before loading unpacked extension in Chrome.
 
 ## [1.0.0] - 2026-09-29
 

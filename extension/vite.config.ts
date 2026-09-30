@@ -3,23 +3,46 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import fs from 'fs';
 
-// Simple plugin to copy manifest.json and icons to dist
+// Plugin to reliably emit manifest.json and icons to dist
 function copyExtensionAssets() {
   return {
     name: 'copy-extension-assets',
+    generateBundle() {
+      // Emit manifest.json as a first-class Rollup asset
+      const manifestPath = resolve(__dirname, 'manifest.json');
+      if (fs.existsSync(manifestPath)) {
+        this.emitFile({
+          type: 'asset',
+          fileName: 'manifest.json',
+          source: fs.readFileSync(manifestPath, 'utf8')
+        });
+      }
+      // Emit icons
+      const iconsSrc = resolve(__dirname, 'icons');
+      if (fs.existsSync(iconsSrc)) {
+        for (const file of fs.readdirSync(iconsSrc)) {
+          const filePath = resolve(iconsSrc, file);
+          if (fs.statSync(filePath).isFile()) {
+            this.emitFile({
+              type: 'asset',
+              fileName: `icons/${file}`,
+              source: fs.readFileSync(filePath)
+            });
+          }
+        }
+      }
+    },
     closeBundle() {
       const distDir = resolve(__dirname, 'dist');
       if (!fs.existsSync(distDir)) {
         fs.mkdirSync(distDir, { recursive: true });
       }
-      // Copy manifest.json
-      if (fs.existsSync(resolve(__dirname, 'manifest.json'))) {
-        fs.copyFileSync(
-          resolve(__dirname, 'manifest.json'),
-          resolve(distDir, 'manifest.json')
-        );
+      // Ensure manifest.json is present on disk
+      const manifestPath = resolve(__dirname, 'manifest.json');
+      if (fs.existsSync(manifestPath)) {
+        fs.copyFileSync(manifestPath, resolve(distDir, 'manifest.json'));
       }
-      // Copy icons
+      // Ensure icons are present on disk
       const iconsDist = resolve(distDir, 'icons');
       if (!fs.existsSync(iconsDist)) {
         fs.mkdirSync(iconsDist, { recursive: true });
@@ -27,7 +50,10 @@ function copyExtensionAssets() {
       const iconsSrc = resolve(__dirname, 'icons');
       if (fs.existsSync(iconsSrc)) {
         for (const file of fs.readdirSync(iconsSrc)) {
-          fs.copyFileSync(resolve(iconsSrc, file), resolve(iconsDist, file));
+          const filePath = resolve(iconsSrc, file);
+          if (fs.statSync(filePath).isFile()) {
+            fs.copyFileSync(filePath, resolve(iconsDist, file));
+          }
         }
       }
     }

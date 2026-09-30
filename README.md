@@ -95,6 +95,8 @@ Filters through noise to identify:
    ```
 
 ### Loading the Extension in Chrome
+> **Important:** Chrome loads the extension from the compiled `RedditDIG/extension/dist/` directory. If you haven't run `npm run build` yet, `dist/` will not exist on disk and Chrome will report `File path cannot be resolved. Could not load manifest.`. Ensure you run `npm run build` before clicking **Load unpacked**.
+
 1. Open Google Chrome and navigate to `chrome://extensions/`.
 2. Enable **Developer mode** using the toggle in the top-right corner.
 3. Click **Load unpacked** in the top-left corner.
@@ -115,7 +117,8 @@ All development commands are executed inside the `extension/` directory:
 | `npm run typecheck` | Validates TypeScript types across the entire project (`tsc --noEmit`) |
 | `npm test` | Runs the zero-trust production security audit |
 | `npm run audit` | Runs the zero-trust security audit script scanning for keys, leaks, and remote URLs |
-| `npm run verify` | Full verification pipeline: typecheck + security audit + production build |
+| `npm run verify:bundle` | Validates `dist/manifest.json` and MV3 asset integrity for Chrome unpacked loading |
+| `npm run verify` | Full verification pipeline: typecheck + production build + security audit + bundle integrity |
 | `npm run package` | Verifies and packages the extension into `redditdig-extension.zip` for Web Store release |
 
 ### 🤖 Continuous Integration (GitHub Actions)

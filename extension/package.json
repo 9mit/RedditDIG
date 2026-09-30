@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "node scripts/audit-production.mjs",
     "audit": "node scripts/audit-production.mjs",
-    "verify": "npm run typecheck && npm run audit && npm run build",
+    "verify:bundle": "node scripts/verify-bundle.mjs",
+    "verify": "npm run typecheck && npm run build && npm run audit && node scripts/verify-bundle.mjs",
     "package": "npm run verify && node scripts/package-extension.mjs"
   },
   "dependencies": {
