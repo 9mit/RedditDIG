@@ -1,0 +1,66 @@
+{
+  "manifest_version": 3,
+  "name": "RedditDIG - Reddit Thread Intelligence & Search",
+  "version": "1.0.1",
+  "minimum_chrome_version": "116",
+  "description": "Dig deeper into any Reddit thread. Local discussion intelligence, statistical consensus, similarity search, and argument explorer.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "sidePanel",
+    "tabs",
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://*.reddit.com/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; connect-src 'self' https://*.reddit.com https://reddit.com;"
+  },
+  "action": {
+    "default_title": "RedditDIG",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.reddit.com/*",
+        "https://reddit.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["https://*.reddit.com/*", "https://reddit.com/*"]
+    }
+  ],
+  "commands": {
+    "open-redditdig": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "Open RedditDIG side panel"
+    }
+  }
+}

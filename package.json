@@ -1,0 +1,11 @@
+{
+  "name": "redditdig",
+  "version": "1.0.1",
+  "private": true,
+  "description": "RedditDIG - Reddit Thread Intelligence & Search Chrome Extension (MV3)",
+  "scripts": {
+    "build": "npm --prefix extension run build",
+    "typecheck": "npm --prefix extension run typecheck",
+    "dev": "npm --prefix extension run dev"
+  }
+}
