@@ -563,18 +563,20 @@ export function querySelectorAllDeep(
       const hosts = node.querySelectorAll(
         'shreddit-comment, shreddit-comment-tree, faceplate-partial, faceplate-batch, faceplate-tracker, shreddit-post, shreddit-async-loader, [data-testid="comment"]'
       );
+      const hostSet = new Set<Element>();
       for (let i = 0; i < hosts.length; i++) {
         const host = hosts[i];
+        hostSet.add(host);
         if (host.shadowRoot) {
           search(host.shadowRoot);
         }
       }
 
-      // Also inspect any other elements with shadowRoot
+      // Also inspect any other elements with shadowRoot without repeated Array allocations
       const allEls = node.querySelectorAll('*');
       for (let i = 0; i < allEls.length; i++) {
         const el = allEls[i];
-        if (el.shadowRoot && !Array.from(hosts).includes(el)) {
+        if (el.shadowRoot && !hostSet.has(el)) {
           search(el.shadowRoot);
         }
       }
@@ -892,7 +894,11 @@ export async function fetchCommentsByInfoBatch(
       const url = `/api/info.json?id=${encodeURIComponent(fullnames)}&raw_json=1`;
 
       const data = await safeFetchJson(url, { signal });
-      const children = data?.data?.children;
+      if (!data || !data.data) {
+        // Request failed or rate-limited; do not falsely treat missing items as deleted
+        return;
+      }
+      const children = data.data.children;
       const seenChunkIds = new Set<string>();
 
       if (Array.isArray(children)) {
@@ -1055,6 +1061,15 @@ export function isSafeCommentExpansionElement(el: Element): boolean {
       slot.includes(f) ||
       id.includes(f)
     ) {
+      if (f === 'comment_fold') {
+        const commentParent = el.closest('shreddit-comment, .collapsed, details');
+        const isCollapsed = Boolean(
+          commentParent?.hasAttribute('collapsed') ||
+          commentParent?.classList?.contains('collapsed') ||
+          (commentParent && (commentParent as any).collapsed)
+        );
+        if (isCollapsed) continue;
+      }
       return false;
     }
   }

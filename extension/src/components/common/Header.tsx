@@ -1,8 +1,9 @@
-import React from 'react';
-import { RefreshCw, Play, ExternalLink, Settings, X, Info } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { RefreshCw, Play, ExternalLink, Settings, X, Info, Download, Check, FileText, Code } from 'lucide-react';
 import { ThreadIntelligenceEnvelope } from '../../types';
 import { MainLogo } from './MainLogo';
 import { toSafeRedditUrl } from '../../services/url';
+import { exportThreadAsMarkdown, exportThreadAsJson, downloadFile, copyToClipboard } from '../../services/export';
 
 function getVersion(): string {
   try {
@@ -29,6 +30,56 @@ export const Header: React.FC<HeaderProps> = ({
   thread, isLoading, statusStep, progress,
   onAnalyze, onCancel, onOpenSettings, activeUrl, canAnalyze = true
 }) => {
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [copiedReport, setCopiedReport] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showExportMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowExportMenu(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showExportMenu]);
+
+  const handleCopyMarkdown = async () => {
+    if (!thread) return;
+    const md = exportThreadAsMarkdown(thread);
+    const ok = await copyToClipboard(md);
+    if (ok) {
+      setCopiedReport(true);
+      setTimeout(() => {
+        setCopiedReport(false);
+        setShowExportMenu(false);
+      }, 1500);
+    }
+  };
+
+  const handleDownloadMarkdown = () => {
+    if (!thread) return;
+    const md = exportThreadAsMarkdown(thread);
+    const filename = `redditdig-${thread.subreddit}-${thread.thread_id}.md`;
+    downloadFile(filename, md, 'text/markdown;charset=utf-8');
+    setShowExportMenu(false);
+  };
+
+  const handleDownloadJson = () => {
+    if (!thread) return;
+    const json = exportThreadAsJson(thread);
+    const filename = `redditdig-${thread.subreddit}-${thread.thread_id}.json`;
+    downloadFile(filename, json, 'application/json;charset=utf-8');
+    setShowExportMenu(false);
+  };
   const safeThreadUrl = thread ? toSafeRedditUrl(thread.url) : null;
   const version = getVersion();
   return (
@@ -59,6 +110,75 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Settings size={14} aria-hidden="true" />
             </button>
+          )}
+
+          {thread && !isLoading && (
+            <div style={{ position: 'relative' }} ref={exportMenuRef}>
+              <button
+                type="button"
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="rdg-btn-ghost"
+                title="Export or copy analysis"
+                aria-label="Export or copy analysis"
+                aria-expanded={showExportMenu}
+                style={{ borderRadius: 'var(--radius-sm)', padding: '4px 6px' }}
+              >
+                <Download size={14} aria-hidden="true" />
+              </button>
+              {showExportMenu && (
+                <div
+                  role="menu"
+                  aria-label="Export options"
+                  style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: 4,
+                    background: '#ffffff',
+                    border: '1.5px solid var(--border-default)',
+                    borderRadius: 'var(--radius-md)',
+                    boxShadow: 'var(--shadow-elevated)',
+                    zIndex: 100,
+                    minWidth: 190,
+                    padding: 4,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 2
+                  }}
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleCopyMarkdown}
+                    className="rdg-btn rdg-btn-ghost"
+                    style={{ justifyContent: 'flex-start', fontSize: 11, padding: '6px 8px', width: '100%' }}
+                  >
+                    {copiedReport ? <Check size={12} style={{ color: 'var(--positive)' }} /> : <FileText size={12} />}
+                    <span>{copiedReport ? 'Report Copied!' : 'Copy Markdown Report'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleDownloadMarkdown}
+                    className="rdg-btn rdg-btn-ghost"
+                    style={{ justifyContent: 'flex-start', fontSize: 11, padding: '6px 8px', width: '100%' }}
+                  >
+                    <Download size={12} />
+                    <span>Download Report (.md)</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleDownloadJson}
+                    className="rdg-btn rdg-btn-ghost"
+                    style={{ justifyContent: 'flex-start', fontSize: 11, padding: '6px 8px', width: '100%' }}
+                  >
+                    <Code size={12} />
+                    <span>Download JSON (.json)</span>
+                  </button>
+                </div>
+              )}
+            </div>
           )}
 
           {isLoading && onCancel ? (

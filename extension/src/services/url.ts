@@ -3,6 +3,7 @@
 // one of these helpers before reaching a navigation or link sink.
 
 const REDDIT_HOST_RE = /^(?:[a-z0-9-]+\.)*reddit\.com$/i;
+const REDDIT_SHORT_RE = /^(?:[a-z0-9-]+\.)*redd\.it$/i;
 const REDDIT_SHORT_HOST = 'redd.it';
 /** Path segments that can follow /comments/<id>/<slug>/ but are views, not comment ids. */
 const RESERVED_THREAD_SEGMENTS = new Set([
@@ -22,9 +23,11 @@ function parse(raw: unknown): URL | null {
   }
 }
 
-/** True when the hostname is reddit.com or any subdomain of it. */
+/** True when the hostname is reddit.com or any subdomain of it, or redd.it and subdomains. */
 export function isRedditHostname(hostname: string): boolean {
-  return REDDIT_HOST_RE.test(hostname);
+  if (typeof hostname !== 'string') return false;
+  const h = hostname.toLowerCase();
+  return REDDIT_HOST_RE.test(h) || REDDIT_SHORT_RE.test(h);
 }
 
 /**
@@ -35,7 +38,7 @@ export function toSafeRedditUrl(raw: unknown): string | null {
   const u = parse(raw);
   if (!u || u.protocol !== 'https:') return null;
   if (u.username || u.password) return null;
-  if (!isRedditHostname(u.hostname) && u.hostname.toLowerCase() !== REDDIT_SHORT_HOST) return null;
+  if (!isRedditHostname(u.hostname)) return null;
   return u.toString();
 }
 

@@ -15,11 +15,38 @@ export const Popup: React.FC = () => {
     }
   }, []);
 
-  const handleOpenSidePanel = () => {
-    if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
-      chrome.runtime.sendMessage({ action: 'OPEN_SIDEPANEL', tabId: activeTab?.id }).catch(() => {});
-      window.close();
+  const handleOpenSidePanel = async () => {
+    // 1. Direct call inside user gesture (required by Chrome 116+ to preserve gesture token)
+    if (typeof chrome !== 'undefined' && activeTab?.id !== undefined && chrome.sidePanel?.open) {
+      try {
+        await chrome.sidePanel.open({ tabId: activeTab.id });
+        window.close();
+        return;
+      } catch (directErr) {
+        console.warn('RedditDIG: direct sidePanel.open failed, trying background message fallback:', directErr);
+      }
     }
+
+    // 2. Try background message relay
+    if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+      try {
+        const res = await chrome.runtime.sendMessage({ action: 'OPEN_SIDEPANEL', tabId: activeTab?.id });
+        if (res?.success) {
+          window.close();
+          return;
+        }
+      } catch {
+        // Fallback below
+      }
+    }
+
+    // 3. Fallback for browsers where sidePanel API is unsupported (e.g. Firefox AMO)
+    if (typeof chrome !== 'undefined' && chrome.tabs?.create) {
+      await chrome.tabs.create({ url: chrome.runtime.getURL('sidepanel.html') }).catch(() => {});
+      window.close();
+      return;
+    }
+    window.close();
   };
 
   const isReddit = activeTab?.url ? isRedditUrl(activeTab.url) : false;

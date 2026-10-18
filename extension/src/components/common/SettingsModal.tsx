@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, CheckCircle2, ShieldCheck, RefreshCw, Trash2, Sliders, AlertCircle } from 'lucide-react';
+import { X, CheckCircle2, ShieldCheck, RefreshCw, Trash2, Sliders, AlertCircle, ShieldAlert } from 'lucide-react';
 import { StorageService, AppSettings, DEFAULT_SETTINGS, clampCommentLimit } from '../../services/storage';
+import { AccountScrubberModal } from '../scrubber/AccountScrubberModal';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
   const [commentInputStr, setCommentInputStr] = useState<string>(String(DEFAULT_SETTINGS.maxComments));
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showScrubber, setShowScrubber] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -279,6 +281,48 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
             />
           </div>
 
+          {/* Profile & Account Data Scrubber */}
+          <div style={{
+            background: 'rgba(239, 68, 68, 0.04)',
+            border: '1.5px solid var(--negative-border)',
+            borderRadius: 'var(--radius-md)',
+            padding: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <ShieldAlert size={16} style={{ color: 'var(--negative)', flexShrink: 0, marginTop: 1 }} />
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--negative)' }}>
+                  Scrub Profile & Delete Account Data
+                </div>
+                <div style={{ fontSize: 10.5, color: 'var(--text-secondary)', lineHeight: 1.4, marginTop: 2 }}>
+                  Automatically overwrite and delete every post and comment from your Reddit profile before deleting your account, leaving zero residual data behind.
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowScrubber(true)}
+              className="rdg-btn"
+              style={{
+                background: 'var(--negative-dim)',
+                color: 'var(--negative)',
+                borderColor: 'var(--negative-border)',
+                padding: '7px 12px',
+                fontSize: 11,
+                fontWeight: 700,
+                justifyContent: 'center',
+                marginTop: 2
+              }}
+            >
+              <Trash2 size={12} />
+              <span>Launch Profile & Account Wiper</span>
+            </button>
+          </div>
+
           {/* Reset Actions */}
           <div style={{ display: 'flex', gap: 8, paddingTop: 4 }}>
             <button
@@ -355,6 +399,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
           </button>
         </div>
       </div>
+
+      <AccountScrubberModal
+        isOpen={showScrubber}
+        onClose={() => setShowScrubber(false)}
+        onPurged={() => {
+          onClearSession?.();
+          onSaved?.();
+        }}
+      />
     </div>
   );
 };

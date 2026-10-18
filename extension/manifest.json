@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RedditDIG - Reddit Thread Intelligence & Search",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minimum_chrome_version": "116",
   "description": "Dig deeper into any Reddit thread. Local discussion intelligence, statistical consensus, similarity search, and argument explorer.",
   "icons": {
@@ -14,13 +14,17 @@
     "tabs",
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "contextMenus"
   ],
   "host_permissions": [
-    "https://*.reddit.com/*"
+    "https://*.reddit.com/*",
+    "https://reddit.com/*",
+    "https://*.redd.it/*",
+    "https://redd.it/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; connect-src 'self' https://*.reddit.com https://reddit.com;"
+    "extension_pages": "script-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'; connect-src 'self' https://*.reddit.com https://reddit.com https://*.redd.it https://redd.it;"
   },
   "action": {
     "default_title": "RedditDIG",
@@ -29,6 +33,16 @@
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
+    }
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "redditdig@antigravity.io",
+      "strict_min_version": "115.0"
     }
   },
   "background": {

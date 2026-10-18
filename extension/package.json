@@ -1,6 +1,6 @@
 {
   "name": "redditdig-extension",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "RedditDIG Chrome Extension (MV3) - Dig deeper into any Reddit thread",
   "type": "module",
   "scripts": {
@@ -8,7 +8,11 @@
     "build:main": "vite build",
     "build:content": "vite build --config vite.content.config.ts",
     "build": "tsc && vite build && vite build --config vite.content.config.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"No test files configured\" && exit 0",
+    "audit": "node scripts/audit-production.mjs",
+    "package": "node scripts/package.mjs",
+    "zip": "node scripts/package.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.475.0",
@@ -21,6 +25,7 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.3",
     "vite": "^6.1.0"
   }

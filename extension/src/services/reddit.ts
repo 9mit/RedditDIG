@@ -94,9 +94,22 @@ export async function jumpToRedditComment(commentId: string, permalink?: string)
               for (const sel of selectors) {
                 const el = document.querySelector(sel) as HTMLElement | null;
                 if (el) {
+                  // Uncollapse parent comments if collapsed
+                  let p: HTMLElement | null = el.parentElement;
+                  while (p && p !== document.body) {
+                    if (p.tagName?.toLowerCase() === 'shreddit-comment' && (p.hasAttribute('collapsed') || (p as any).collapsed)) {
+                      p.removeAttribute('collapsed');
+                      try { (p as any).collapsed = false; } catch {}
+                    }
+                    p = p.parentElement;
+                  }
                   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  el.style.outline = '3px solid #ff4500';
-                  setTimeout(() => { el.style.outline = ''; }, 3500);
+                  el.style.outline = '3px solid #1d4ed8';
+                  el.style.boxShadow = '0 0 16px rgba(29, 78, 216, 0.45)';
+                  setTimeout(() => {
+                    el.style.outline = '';
+                    el.style.boxShadow = '';
+                  }, 3500);
                   return true;
                 }
               }

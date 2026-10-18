@@ -24,7 +24,7 @@
   --text-primary: #0f172a;
   --text-secondary: #334155;
   --text-muted: #64748b;
-  --text-dim: #94a3b8;
+  --text-dim: #64748b;
 
   /* Brand Accent - Royal Blue */
   --royal-blue: #1d4ed8;
@@ -849,13 +849,48 @@ a:focus:not(:focus-visible),
 
 .rdg-tab:focus-visible,
 .rdg-btn:focus-visible,
+.rdg-btn-ghost:focus-visible,
+.rdg-input:focus-visible,
+.rdg-select:focus-visible,
+.rdg-pulse-cell:focus-visible,
 .rdg-suggestion:focus-visible,
 .rdg-source-link:focus-visible,
 .rdg-debate-node:focus-visible,
 .rdg-participant:focus-visible,
-.rdg-filter-chip:focus-visible {
+.rdg-filter-chip:focus-visible,
+.rdg-chip:focus-visible {
   outline: 2px solid var(--royal-blue);
   outline-offset: 2px;
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Keyboard badge element */
+.redditdig-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  padding: 1px 5px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.2);
 }
 
 @media (prefers-reduced-motion: reduce) {

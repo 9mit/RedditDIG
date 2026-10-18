@@ -22,7 +22,8 @@ const READ_PATHS: RegExp[] = [
   /^\/api\/info(?:\.json)?$/i,
   /^\/api\/morechildren(?:\.json)?$/i,
   /^\/(?:(?:r|u|user)\/[^/]+\/)?comments\/[a-z0-9]+(?:(?:\/[^/]+)*)(?:\.json)?\/?$/i,
-  /^\/comments\/[a-z0-9]+(?:(?:\/[^/]+)*)(?:\.json)?\/?$/i
+  /^\/comments\/[a-z0-9]+(?:(?:\/[^/]+)*)(?:\.json)?\/?$/i,
+  /^\/[a-z0-9]+(?:\.json)?\/?$/i
 ];
 const POST_PATHS: RegExp[] = [/^\/api\/morechildren(?:\.json)?$/i];
 

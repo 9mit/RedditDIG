@@ -102,20 +102,36 @@ export class LocalSummaryEngine {
     // Sort by salience
     scoredSentences.sort((a, b) => b.score - a.score);
 
-    // Helper: deduplicate sentences by word overlap
+    // Helper: deduplicate sentences by word overlap, aggregating corroborating comment IDs
     const deduplicate = (list: ScoredSentence[], maxCount: number): CitationItem[] => {
       const selected: CitationItem[] = [];
-      const seenTokens = new Set<string>();
+      const itemTokens: Set<string>[] = [];
 
       for (const item of list) {
-        if (selected.length >= maxCount) break;
         const tokens = item.text.toLowerCase().match(/[a-z0-9]+/g)?.filter(w => !stopWords.has(w)) || [];
-        const overlap = tokens.filter(t => seenTokens.has(t)).length;
-        if (tokens.length > 0 && overlap / tokens.length > 0.65) {
-          continue; // too similar to an already chosen sentence
-        }
-        for (const t of tokens) seenTokens.add(t);
+        const tokenSet = new Set(tokens);
+        let matchIdx = -1;
 
+        for (let i = 0; i < itemTokens.length; i++) {
+          const existing = itemTokens[i];
+          const overlap = tokens.filter(t => existing.has(t)).length;
+          if (tokens.length > 0 && overlap / tokens.length > 0.65) {
+            matchIdx = i;
+            break;
+          }
+        }
+
+        if (matchIdx !== -1) {
+          // Corroborating point: add comment ID to existing citation if not already present
+          if (!selected[matchIdx].comment_ids.includes(item.commentId) && selected[matchIdx].comment_ids.length < 3) {
+            selected[matchIdx].comment_ids.push(item.commentId);
+          }
+          continue;
+        }
+
+        if (selected.length >= maxCount) continue;
+
+        itemTokens.push(tokenSet);
         selected.push({
           text: item.text,
           comment_ids: [item.commentId]

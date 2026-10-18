@@ -668,7 +668,12 @@ export class DiscussionAnalyzer {
     if (deepest.length === 0) return [];
 
     const commentMap = new Map<string, CommentSchema>();
-    for (const c of comments) commentMap.set(c.id, c);
+    for (const c of comments) {
+      commentMap.set(c.id, c);
+      if (c.reddit_id) commentMap.set(c.reddit_id, c);
+      const clean = c.id.replace(/^t1_/, '');
+      if (clean) commentMap.set(clean, c);
+    }
 
     const chain: Array<any> = [];
     const seenJourneyIds = new Set<string>();
@@ -685,7 +690,9 @@ export class DiscussionAnalyzer {
         snippet: cleanSnippet(curr.body, 160),
         permalink: curr.permalink
       });
-      curr = curr.parent_id ? commentMap.get(curr.parent_id) : undefined;
+      if (!curr.parent_id) break;
+      const cleanParent: string = curr.parent_id.replace(/^t1_/, '');
+      curr = commentMap.get(curr.parent_id) || commentMap.get(cleanParent);
     }
     return chain.reverse();
   }

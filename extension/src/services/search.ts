@@ -14,7 +14,7 @@ export class ClientSearchEngine {
 
   /** Normalizes a username for resilient matching */
   static normalizeUsername(username: string): string {
-    return username.trim().replace(/^u\//i, '').replace(/^@/, '').toLowerCase();
+    return username.trim().replace(/^\/?u\//i, '').replace(/^@/, '').toLowerCase();
   }
 
   /**
@@ -28,7 +28,7 @@ export class ClientSearchEngine {
       c => c.body && c.body !== '[deleted]' && c.body !== '[removed]'
     );
 
-    // 1. Author / Username filter (supports username, u/username, case-insensitive)
+    // 1. Author / Username filter (supports username, u/username, /u/username, case-insensitive)
     if (req.username && req.username.trim()) {
       const cleanUser = this.normalizeUsername(req.username);
       filtered = filtered.filter(c => {
@@ -96,6 +96,7 @@ export class ClientSearchEngine {
     const phraseMatch = rawQuery.match(/^"([^"]+)"$/);
     const isExplicitPhrase = Boolean(phraseMatch);
     const targetQuery = isExplicitPhrase ? phraseMatch![1].toLowerCase() : rawQuery.toLowerCase();
+    const cleanTargetQuery = targetQuery.replace(/^[^\w#+]+|[^\w#+]+$/g, '');
 
     interface ScoredComment {
       comment: CommentSchema;
@@ -117,21 +118,22 @@ export class ClientSearchEngine {
       let exactScore = 0;
 
       if (isExplicitPhrase) {
-        if (text.includes(targetQuery)) {
+        if (text.includes(targetQuery) || (cleanTargetQuery && text.includes(cleanTargetQuery))) {
           exactScore = 1.0;
         }
       } else {
         const queryTerms = targetQuery.split(/\s+/).filter(t => t.length > 0);
         let matchCount = 0;
         for (const term of queryTerms) {
-          if (text.includes(term)) {
+          const cleanTerm = term.replace(/^[^\w#+]+|[^\w#+]+$/g, '');
+          if (text.includes(term) || (cleanTerm && text.includes(cleanTerm))) {
             matchCount++;
           }
         }
         if (matchCount > 0) {
           exactScore = matchCount / queryTerms.length;
           // Boost if exact sequence is present
-          if (text.includes(targetQuery)) {
+          if (text.includes(targetQuery) || (cleanTargetQuery && text.includes(cleanTargetQuery))) {
             exactScore += 0.5;
           }
         }

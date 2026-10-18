@@ -1,7 +1,8 @@
-import React from 'react';
-import { Sparkles, AlertCircle, ArrowRight, Settings, Check, X, HelpCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sparkles, AlertCircle, ArrowRight, Settings, Check, X, HelpCircle, Copy } from 'lucide-react';
 import { SummaryResponse } from '../../types';
 import { jumpToRedditComment } from '../../services/reddit';
+import { copyToClipboard } from '../../services/export';
 
 interface ThreadSummaryCardProps {
   summary: SummaryResponse;
@@ -9,6 +10,34 @@ interface ThreadSummaryCardProps {
 }
 
 export const ThreadSummaryCard: React.FC<ThreadSummaryCardProps> = ({ summary, onOpenSettings }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    const parts: string[] = [];
+    if (summary.overview) parts.push(summary.overview);
+    if (summary.key_takeaways?.length > 0) {
+      parts.push('\nKey Points:');
+      for (const t of summary.key_takeaways) parts.push(`• ${t.text}`);
+    }
+    if (summary.what_agree_on?.length > 0) {
+      parts.push('\nWhat People Agree On:');
+      for (const a of summary.what_agree_on) parts.push(`✓ ${a.text}`);
+    }
+    if (summary.what_disagree_on?.length > 0) {
+      parts.push('\nWhere People Clash:');
+      for (const d of summary.what_disagree_on) parts.push(`✗ ${d.text}`);
+    }
+    if (summary.unresolved_questions?.length > 0) {
+      parts.push('\nUnanswered Questions:');
+      for (const q of summary.unresolved_questions) parts.push(`? ${q.text}`);
+    }
+    const success = await copyToClipboard(parts.join('\n'));
+    if (success) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   if (summary.ai_error || !summary.overview) {
     return (
       <div className="rdg-card" style={{ borderColor: 'var(--warning-border)' }}>
@@ -43,7 +72,28 @@ export const ThreadSummaryCard: React.FC<ThreadSummaryCardProps> = ({ summary, o
           <Sparkles size={13} style={{ color: 'var(--royal-blue)' }} />
           <span>Quick Summary</span>
         </h3>
-        <span className="rdg-badge rdg-badge-ai" style={{ display: 'none' }} aria-hidden="true">{summary.is_ai_generated ? 'AI Summary' : 'Local NLP'}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="rdg-btn rdg-btn-secondary"
+            style={{ fontSize: 10.5, padding: '2px 8px' }}
+            title="Copy summary text"
+            aria-label={copied ? 'Summary copied to clipboard' : 'Copy summary to clipboard'}
+          >
+            {copied ? (
+              <>
+                <Check size={11} style={{ color: 'var(--positive)' }} aria-hidden="true" />
+                <span style={{ color: 'var(--positive)', fontWeight: 700 }}>Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy size={11} aria-hidden="true" />
+                <span>Copy</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
       <div className="rdg-card-body">
         {/* Overview */}

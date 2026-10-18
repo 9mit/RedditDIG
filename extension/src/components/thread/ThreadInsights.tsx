@@ -145,11 +145,21 @@ export const ThreadInsights: React.FC<Props> = ({ debateMap, mainArguments, temp
                   <div
                     key={branch.id}
                     className="rdg-debate-node"
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isSelected}
+                    aria-label={`${branch.label}, ${branch.count} comments. ${isSelected ? 'Click to collapse' : 'Click to expand'}`}
                     style={{
                       borderColor: isSelected ? 'var(--royal-blue)' : 'var(--border-default)',
                       padding: 10
                     }}
                     onClick={() => setSelectedBranch(isSelected ? null : branch.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedBranch(isSelected ? null : branch.id);
+                      }
+                    }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -229,6 +239,10 @@ export const ThreadInsights: React.FC<Props> = ({ debateMap, mainArguments, temp
                 return (
                   <div
                     key={idx}
+                    role="button"
+                    tabIndex={0}
+                    aria-expanded={isOpen}
+                    aria-label={`${arg.topic}, ${arg.percentage}% of comments. ${isOpen ? 'Click to collapse' : 'Click to view sample comments'}`}
                     style={{
                       background: '#ffffff',
                       border: `1.5px solid ${isOpen ? 'var(--royal-blue)' : 'var(--border-default)'}`,
@@ -237,6 +251,12 @@ export const ThreadInsights: React.FC<Props> = ({ debateMap, mainArguments, temp
                       transition: 'border-color 0.12s'
                     }}
                     onClick={() => setExpandedTopic(isOpen ? null : idx)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setExpandedTopic(isOpen ? null : idx);
+                      }
+                    }}
                   >
                     <div style={{ padding: '8px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1, minWidth: 0 }}>

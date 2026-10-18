@@ -7,9 +7,38 @@ import { isRedditHostname } from '../services/url';
 const RELAY_TIMEOUT_MS = 20_000;
 
 chrome.runtime.onInstalled.addListener(() => {
-  // The toolbar icon opens the popup; the side panel is opened explicitly from the popup / shortcut.
+  // The toolbar icon opens the popup; the side panel is opened explicitly from the popup / shortcut / context menu.
   if (chrome.sidePanel?.setPanelBehavior) {
     chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: false }).catch(() => {});
+  }
+
+  // Register context menus for fast access on Reddit pages and Reddit thread links
+  if (chrome.contextMenus?.create) {
+    chrome.contextMenus.removeAll(() => {
+      chrome.contextMenus.create({
+        id: 'redditdig-open-panel',
+        title: 'Open RedditDIG Side Panel',
+        contexts: ['action', 'page'],
+        documentUrlPatterns: [
+          'https://*.reddit.com/*',
+          'https://reddit.com/*',
+          'https://*.redd.it/*',
+          'https://redd.it/*'
+        ]
+      });
+
+      chrome.contextMenus.create({
+        id: 'redditdig-analyze-link',
+        title: 'Analyze Discussion in RedditDIG',
+        contexts: ['link'],
+        targetUrlPatterns: [
+          'https://*.reddit.com/*',
+          'https://reddit.com/*',
+          'https://*.redd.it/*',
+          'https://redd.it/*'
+        ]
+      });
+    });
   }
 });
 
@@ -21,17 +50,47 @@ function openSidePanel(tabId: number | undefined): Promise<void> {
   return chrome.sidePanel.open({ tabId });
 }
 
+function fallbackToTab(): void {
+  if (typeof chrome !== 'undefined' && chrome.tabs?.create) {
+    chrome.tabs.create({ url: chrome.runtime.getURL('sidepanel.html') }).catch(() => {});
+  }
+}
+
+// Keyboard shortcuts listener
 chrome.commands.onCommand.addListener((command, tab) => {
   if (command !== 'open-redditdig') return;
+
   if (tab?.id !== undefined) {
-    openSidePanel(tab.id).catch((err) => console.warn('RedditDIG: could not open side panel:', err));
+    openSidePanel(tab.id).catch((err) => {
+      console.warn('RedditDIG: could not open side panel, falling back to tab:', err);
+      fallbackToTab();
+    });
     return;
   }
-  // Older Chromium builds do not pass the tab; fall back to a query (may lose the user gesture).
+  // Older Chromium builds do not pass the tab; fall back to a query
   chrome.tabs.query({ active: true, currentWindow: true }).then(([active]) =>
-    openSidePanel(active?.id).catch((err) => console.warn('RedditDIG: could not open side panel:', err))
+    openSidePanel(active?.id).catch((err) => {
+      console.warn('RedditDIG: could not open side panel, falling back to tab:', err);
+      fallbackToTab();
+    })
   );
 });
+
+// Context menus click listener
+if (chrome.contextMenus?.onClicked) {
+  chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === 'redditdig-open-panel' || info.menuItemId === 'redditdig-analyze-link') {
+      if (tab?.id !== undefined) {
+        openSidePanel(tab.id).catch((err) => {
+          console.warn('RedditDIG: could not open side panel from context menu, falling back to tab:', err);
+          fallbackToTab();
+        });
+      } else {
+        fallbackToTab();
+      }
+    }
+  });
+}
 
 function isTrustedSender(sender: chrome.runtime.MessageSender): boolean {
   return sender.id === chrome.runtime.id;
@@ -39,7 +98,7 @@ function isTrustedSender(sender: chrome.runtime.MessageSender): boolean {
 
 function senderIsRedditTab(sender: chrome.runtime.MessageSender): boolean {
   if (sender.id !== chrome.runtime.id) return false;
-  // If it comes from our extension's sidepanel or popup:
+  // If it comes from our extension's sidepanel, options, or popup:
   if (!sender.tab) return true;
   // If tab.url is available, ensure it's a reddit tab:
   if (sender.tab.url) {
@@ -61,7 +120,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const requested = Number.isInteger(message.tabId) ? (message.tabId as number) : undefined;
     openSidePanel(requested ?? sender.tab?.id)
       .then(() => sendResponse({ success: true }))
-      .catch((err: Error) => sendResponse({ success: false, error: err.message }));
+      .catch((err: Error) => {
+        // Fallback for environments where sidePanel is not supported (Firefox, older Chrome, etc.)
+        if (typeof chrome !== 'undefined' && chrome.tabs?.create) {
+          chrome.tabs.create({ url: chrome.runtime.getURL('sidepanel.html') })
+            .then(() => sendResponse({ success: true, fallback: 'tab' }))
+            .catch((tabErr: Error) => sendResponse({ success: false, error: tabErr.message }));
+        } else {
+          sendResponse({ success: false, error: err.message });
+        }
+      });
     return true; // async sendResponse
   }
 

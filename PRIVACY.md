@@ -51,6 +51,8 @@ RedditDIG utilizes a strictly volatile, database-free architecture:
 
 Users can instantly reset all preferences and purge local extension storage at any time via the **Settings Modal → Reset All Settings**.
 
+Additionally, RedditDIG provides a user-initiated **Profile & Account Data Eraser** in Settings that allows users to permanently redact and delete all their Reddit submissions and comments before account deactivation, accompanied by an optional full wipe of extension local storage.
+
 ---
 
 ## 5. Third-Party Services Disclosure
@@ -67,7 +69,7 @@ RedditDIG operates completely offline and maintains **zero connections** to thir
 ### 6.1 General Data Protection Regulation (GDPR)
 Under the European Union General Data Protection Regulation (GDPR):
 - **Data Minimization (Article 5(1)(c)):** RedditDIG processes only the data strictly necessary to render discussion summaries locally.
-- **Right to Erasure & Right of Access (Articles 15 & 17):** Because we collect, store, and transmit zero personal data to any server, there is no remote data repository to access or erase. All in-browser data is erased instantly upon closing the browsing session.
+- **Right to Erasure & Right of Access (Articles 15 & 17):** Because we collect, store, and transmit zero personal data to any server, there is no remote data repository to access or erase. All in-browser data is erased instantly upon closing the browsing session. Furthermore, our built-in Profile Scrubber allows users to exercise their Right to Erasure directly on Reddit before account termination.
 
 ### 6.2 California Consumer Privacy Act (CCPA / CPRA)
 Under the California Consumer Privacy Act:

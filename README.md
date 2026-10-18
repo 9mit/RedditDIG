@@ -61,6 +61,14 @@ Filters through noise to identify:
 ### 5. Participant Analytics & OP Tracker
 - Tracks Original Poster (OP) engagement, answers acknowledged, and question resolution status (*Resolved*, *Likely resolved*, *Partially answered*, *Unresolved*).
 
+### 6. Profile & Account Data Scrubber (Leave Zero Residual Data)
+When a user deletes a Reddit account, Reddit does *not* delete comments or posts—it simply labels the author as `[deleted]`, leaving personal text permanently public and indexed. RedditDIG provides a built-in privacy scrubber:
+- 🛡️ **Two-Stage Anti-Archive Overwrite:** Overwrites comment and post bodies with privacy placeholders before issuing deletion requests (`/api/editusertext` then `/api/del`), preventing database and third-party archive retention.
+- 🔄 **Authenticated Discovery:** Paginate and discover all user comments and submissions using the user's active browser session.
+- ⚡ **Rate-Limit Resilient:** Automatic exponential backoff on HTTP 429 responses with live pause, resume, and cancellation.
+- 🔒 **Double Confirmation Safety:** Enforces explicit typed confirmation (`DELETE`) before any destructive action.
+- 🧹 **Local Purge & Deactivation Guidance:** Completely purges extension local storage and provides a direct shortcut to Reddit's account deactivation settings.
+
 ---
 
 ## 🛠️ Tech Stack
